@@ -1,8 +1,10 @@
 # CodeIgniter-MY_Model
 
-This **CodeIgniter MY_Model** is the result of a lengthy tutorial about constructing a **MY_Model** in CodeIgniter (http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/). It's based on **Jamie Rumbelow's Base Model** (https://github.com/jamierumbelow/codeigniter-base-model), but with some changed/added methods. It provides a full CRUD base for database interactions, as well as an event-based observer system, intelligent table name guessing and soft delete.
+This **CodeIgniter MY_Model** is based on avenir MY_Model  (http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/) 
 
-**VERY IMPORTANT NOTE: MY_Model DOESN'T REPLACE THE QUERY BUILDER. IF YOU HAVE A VERY COMPLEX QUERY, DO NOT ASK MY_Model TO DO IT FOR YOU**
+It provides a full CRUD base for database interactions, as well as an event-based observer system, intelligent table name guessing and soft delete.
+
+MY_Model doesn't replace ActiverRecord, you can use it together.
 
 ##Synopsis
 ```php
