@@ -1,6 +1,6 @@
 # CodeIgniter-MY_Model
 
-This **CodeIgniter MY_Model** is based on avenir MY_Model  (http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/) 
+This **CodeIgniter MY_Model** is based on avenir MY_Model  (http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/) , also (https://github.com/avenirer/CodeIgniter-MY_Model)
 
 It provides a full CRUD base for database interactions, as well as an event-based observer system, intelligent table name guessing and soft delete.
 
