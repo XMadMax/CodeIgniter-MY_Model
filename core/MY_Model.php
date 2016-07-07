@@ -4,7 +4,12 @@
 * Everyone is permitted to copy and distribute verbatim or modified copies of this license document,
 * and changing it is allowed as long as the name is changed.
 * DON'T BE A DICK PUBLIC LICENSE TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
+* 
+* Modified by XMadMax Jun/2016
 *
+* http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/
+* https://github.com/avenirer/CodeIgniter-MY_Model
+* 
 ***** Do whatever you like with the original work, just don't be a dick.
 ***** Being a dick includes - but is not limited to - the following instances:
 ********* 1a. Outright copyright infringement - Don't just copy this and change the name.
@@ -98,12 +103,19 @@ class MY_Model extends CI_Model
      * You can establish the fields of the table. If you won't these fields will be filled by MY_Model (with one query)
      */
     public $table_fields = array();
+    public $fields = array(); // tractable fields, is an object mirror of the table fields
 
     /**
      * @var array
      * Sets fillable fields
      */
     public $fillable = array();
+
+    /**
+     * @var array
+     * Sets tractabe fields
+     */
+    public $tractable = array();
 
     /**
      * @var array
@@ -115,9 +127,14 @@ class MY_Model extends CI_Model
 
 
     /** @var bool | array
+     * Enables idx generation on insert
+     */
+    protected $addIDX = TRUE;
+
+    /** @var bool | array
      * Enables created_at and updated_at fields
      */
-    protected $timestamps = TRUE;
+    protected $timestamps = FALSE;
     protected $timestamps_format = 'Y-m-d H:i:s';
 
     protected $_created_at_field;
@@ -197,7 +214,31 @@ class MY_Model extends CI_Model
         $this->before_create[]='add_creator';
         $this->before_update[]='add_updater';
         */
+        $this->_setFieldsClass();
     }
+
+    /**
+     * _setFieldClass
+     * 
+     * Creates a class with all fields as objects
+     * 
+     * @return object
+     */
+
+    public function _setFieldsClass()
+    {
+        if (!isset($this->table))
+            return true;
+
+        $myfields = array();
+        $this->_get_table_fields();
+        foreach ($this->table_fields as $val) {
+            if (count($this->tractable) == 0 || in_array($val,$this->tractable))
+                $myfields[$val] = null;
+        }
+        $this->fields = (object) $myfields;
+    }
+
 
     public function _get_table_fields()
     {
@@ -295,9 +336,12 @@ class MY_Model extends CI_Model
         $this->_database->reset_query();
         if(isset($this->return_as_dropdown) && $this->return_as_dropdown == 'dropdown')
         {
+            $pk = $this->primary_key;
+            if (stristr($pk,' as '))
+                $pk = substr($pk,stripos($pk,' as ')+4);
             foreach($data as $row)
             {
-                $dropdown[$row[$this->primary_key]] = $row[$this->_dropdown_field];
+                $dropdown[$row[$pk]] = $row[$this->_dropdown_field];
             }
             $data = $dropdown;
             $this->return_as_dropdown = NULL;
@@ -411,6 +455,10 @@ class MY_Model extends CI_Model
         // if the array is not a multidimensional one...
         if($multi === FALSE)
         {
+            if($this->addIDX !== FALSE)
+            {
+                $data['idx'] = $this->genIDX();
+            }
             if($this->timestamps !== FALSE)
             {
                 $data[$this->_created_at_field] = $this->_the_timestamp();
@@ -1060,6 +1108,7 @@ class MY_Model extends CI_Model
             $pivot_table = NULL;
             $relation = $this->_relationships[$request['request']];
             $this->load->model($relation['foreign_model']);
+            $foreign_model_name = (substr($relation['foreign_model'],strpos($relation['foreign_model'],'/')>0?strpos($relation['foreign_model'],'/')+1:0));
             $foreign_key = $relation['foreign_key'];
             $local_key = $relation['local_key'];
             $foreign_table = $relation['foreign_table'];
@@ -1109,7 +1158,7 @@ class MY_Model extends CI_Model
             }
             if(!isset($pivot_table))
             {
-                $sub_results = $this->{$relation['foreign_model']};
+                $sub_results = $this->{$foreign_model_name};
                 $select = array();
                 $select[] = '`'.$foreign_table.'`.`'.$foreign_key.'`';
                 if(!empty($request['parameters']))
@@ -1236,7 +1285,7 @@ class MY_Model extends CI_Model
                         $the_local_key = $result_array[$pivot_local_key];
                         if(isset($get_relate) and $get_relate === TRUE)
                         {
-                            $subs[$the_local_key][$the_foreign_key] = $this->{$relation['foreign_model']}->where($local_key, $result[$local_key])->get();
+                            $subs[$the_local_key][$the_foreign_key] = $this->{$foreign_model_name}->where($local_key, $result[$local_key])->get();
                         }
                         else
                         {
@@ -1334,8 +1383,10 @@ class MY_Model extends CI_Model
                         if(!is_array($relation))
                         {
                             $foreign_model = $relation;
-                            $foreign_model_name = strtolower($foreign_model);
-                            $this->load->model($foreign_model_name);
+                            $this->load->model($foreign_model);
+//                            $foreign_model_name = strtolower($foreign_model);
+                            $foreign_model_name = (substr($foreign_model,strpos($foreign_model,'/')>0?strpos($foreign_model,'/')+1:0));
+
                             $foreign_table = $this->{$foreign_model_name}->table;
                             $foreign_key = $this->{$foreign_model_name}->primary_key;
                             $local_key = $this->primary_key;
@@ -1355,8 +1406,9 @@ class MY_Model extends CI_Model
                                 }
                                 else
                                 {
-                                    $foreign_model_name = strtolower($foreign_model);
-                                    $this->load->model($foreign_model_name);
+//                                    $foreign_model_name = strtolower($foreign_model);
+                                    $foreign_model_name = (substr($foreign_model,strpos($foreign_model,'/')>0?strpos($foreign_model,'/')+1:0));
+                                    $this->load->model($foreign_model);
                                     $foreign_table = $this->{$foreign_model_name}->table;
                                 }
                                 $foreign_key = $relation['foreign_key'];
@@ -1372,8 +1424,9 @@ class MY_Model extends CI_Model
                             else
                             {
                                 $foreign_model = $relation[0];
-                                $foreign_model_name = strtolower($foreign_model);
-                                $this->load->model($foreign_model_name);
+//                                $foreign_model_name = strtolower($foreign_model);
+                                $foreign_model_name = (substr($foreign_model,strpos($foreign_model,'/')>0?strpos($foreign_model,'/')+1:0));
+                                $this->load->model($foreign_model);
                                 $foreign_table = $this->{$foreign_model_name}->table;
                                 $foreign_key = $relation[1];
                                 $local_key = $relation[2];
@@ -1509,14 +1562,20 @@ class MY_Model extends CI_Model
      * @param $fields the fields needed
      * @return $this
      */
-    public function fields($fields = NULL)
+    public function fields($fields = NULL, $distinct = NULL)
     {
         if(isset($fields))
         {
-            if($fields == '*count*')
+            if ($fields == '*count-distinct*' && count($distinct) > 0)
             {
                 $this->_select = '';
-                $this->_database->select('COUNT(*) AS counted_rows',FALSE);
+                $this->_database->select('COUNT(DISTINCT '.$distinct.') AS counted_rows',FALSE);
+                $this->fields='*count*';
+            }
+            else if($fields == '*count*')
+            {
+                $this->_select = '';
+                $this->_database->select('COUNT(1) AS counted_rows',FALSE);
             }
             else
             {
@@ -1531,6 +1590,7 @@ class MY_Model extends CI_Model
                         {
                             $field = $this->table . '.' . $field;
                         }
+                        $field = str_replace($this->table.'.FUNCTION','',$field);
                     }
                 }
                 $this->_select = $fields;
@@ -1584,7 +1644,7 @@ class MY_Model extends CI_Model
         return $this;
     }
 
-    public function as_dropdown($field = NULL)
+    public function as_dropdown($field = NULL,$pk = NULL)
     {
         if(!isset($field))
         {
@@ -1593,6 +1653,7 @@ class MY_Model extends CI_Model
         }
         $this->return_as_dropdown = 'dropdown';
         $this->_dropdown_field = $field;
+        $this->primary_key = isset($pk)?$pk:$this->primary_key;
         $this->_select = array($this->primary_key, $field);
         return $this;
     }
@@ -1716,7 +1777,7 @@ class MY_Model extends CI_Model
         else
         {
             $this->load->database();
-            $this->_database =$this->db;
+            $this->_database = $this->db;
         }
         // This may not be required
         return $this;
@@ -1853,7 +1914,8 @@ class MY_Model extends CI_Model
     {
         if (!isset($this->table))
         {
-            $this->table = $this->_get_table_name(get_class($this));
+            // Commented, we don't want to have automatic model name.
+            //$this->table = $this->_get_table_name(get_class($this));
         }
         return TRUE;
     }
@@ -1863,7 +1925,7 @@ class MY_Model extends CI_Model
         return $table_name;
     }
 
-    public function __call($method, $arguments)
+    public function __call($method, array $arguments)
     {
         if(substr($method,0,6) == 'where_')
         {
@@ -1877,6 +1939,20 @@ class MY_Model extends CI_Model
             $this->with($relation,$arguments);
             return $this;
         }
+        if (substr($method,0,3)=='get') {
+            $field = lcfirst(substr($method,3));
+            if (property_exists($this->fields,$field)) {
+                return $this->fields->$field;
+            }
+        }
+        if (substr($method,0,3)=='set') {
+            $field = lcfirst(substr($method,3));
+            if (property_exists($this->fields,$field) && isset($arguments[0])) {
+                $this->fields->$field = $arguments[0];
+                return true;
+            }
+        }
+
         $parent_class = get_parent_class($this);
         if ($parent_class !== FALSE && !method_exists($parent_class, $method) && !method_exists($this,$method))
         {
@@ -1908,7 +1984,6 @@ class MY_Model extends CI_Model
         return array_map( array($this,'object_to_array'), $object );
     }
 
-
     /**
      * Verifies if an array is associative or not
      * @param array $array
@@ -1933,4 +2008,5 @@ class MY_Model extends CI_Model
 	    return $data;
     }
     */
+
 }
