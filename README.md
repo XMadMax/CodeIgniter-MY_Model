@@ -23,6 +23,12 @@ $this->user_model->insert(array('username' => 'avenirer','email' => 'avenir.ro@g
 $this->user_model->update(array('status' => '0'), 1);
 
 $this->user_model->delete(1);
+
+$this->user_model->fields('*count*')->where(array('status' => '0'), 1)->get_all();
+
+$this->user_model->fields('*count-distinct*','email')->where(array('status' => '0'), 1)->get_all();
+
+$this->user_model->fields('email as email1,status as status1');
 ```
 
 ##Installation/Usage
@@ -36,6 +42,7 @@ class User_model extends MY_Model
 	public $table = 'users'; // you MUST mention the table name
 	public $primary_key = 'id'; // you MUST mention the primary key
 	public $fillable = array(); // If you want, you can set an array with the fields that can be filled by insert/update
+	public $tractable = array(); // If you want, you can set an object with the fields that you want to use
 	public $protected = array(); // ...Or you can set an array with the fields that cannot be filled by insert/update
 	public function __construct()
 	{
