@@ -1,14 +1,16 @@
-# CodeIgniter-MY_Model
+# CodeIgniter-SuperModel
 
-This **CodeIgniter MY_Model** is based on avenir MY_Model  (http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/) , also (https://github.com/avenirer/CodeIgniter-MY_Model)
+This **CodeIgniter SuperModel** is based on avenir MY_Model  (http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/) , also (https://github.com/avenirer/CodeIgniter-MY_Model)
 
 It provides a full CRUD base for database interactions, as well as an event-based observer system, intelligent table name guessing and soft delete.
 
-MY_Model doesn't replace ActiverRecord, you can use it together.
+HMVC and XHMVC compliant.
+
+SuperModel doesn't replace ActiverRecord, you can use it together.
 
 ##Synopsis
 ```php
-class User_model extends MY_Model { }
+class User_model extends SuperModel { }
 
 $this->load->model('user_model');
 
@@ -33,11 +35,11 @@ $this->user_model->fields('email as email1,status as status1');
 
 ##Installation/Usage
 
-Download and drag the **MY_Model.php** file into your **application/core** directory. CodeIgniter will load and initialise this class automatically.
+Download and drag the **SuperModel.php** file into your **application/core** directory. CodeIgniter will load and initialise this class automatically.
 
-Extend your model classes from MY_Model and all the functionality will be baked in automatically.
+Extend your model classes from SuperModel and all the functionality will be baked in automatically.
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 	public $table = 'users'; // you MUST mention the table name
 	public $primary_key = 'id'; // you MUST mention the primary key
@@ -50,13 +52,13 @@ class User_model extends MY_Model
 	}
 }
 ```
-If extended like that, MY_Model makes the following assumptions:
+If extended like that, SuperModel makes the following assumptions:
 
 * there are **at least a "created_at" and "updated_at" columns**.
 wh
 If you want, you can be original by changing the settings before the `parent::__construct();`
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 	public function __construct()
 	{
@@ -64,7 +66,7 @@ class User_model extends MY_Model
 		// you can set the database connection that you want to use for this particular model, by passing the group connection name or a config array. By default will use the default connection
 		$this->_database_connection  = 'special_connection';
 
-		// you can disable the use of timestamps. This way, MY_Model won't try to set a created_at and updated_at value on create methods. Also, if you pass it an array as calue, it tells MY_Model, that the first element is a created_at field type, the second element is a updated_at field type (and the third element is a deleted_at field type if $this->soft_deletes is set to TRUE)
+		// you can disable the use of timestamps. This way, SuperModel won't try to set a created_at and updated_at value on create methods. Also, if you pass it an array as calue, it tells SuperModel, that the first element is a created_at field type, the second element is a updated_at field type (and the third element is a deleted_at field type if $this->soft_deletes is set to TRUE)
 		$this->timestamps = TRUE
 
 		// you can enable (TRUE) or disable (FALSE) the "soft delete" on records. Default is FALSE, which means that when you delete a row, that one is gone forever
@@ -96,10 +98,10 @@ class User_model extends MY_Model
 		// you can also use caching. If you want to use the set_cache('...') method, but you want to change the way the caching is made you can use the following properties:
 
 		$this->cache_driver = 'file';
-		//By default, MY_Model uses the files (CodeIgniter's file driver) to cache result. If you want to change the way it stores the cache, you can change the $cache_driver property to whatever CodeIgniter cache driver you want to use.
+		//By default, SuperModel uses the files (CodeIgniter's file driver) to cache result. If you want to change the way it stores the cache, you can change the $cache_driver property to whatever CodeIgniter cache driver you want to use.
 
 		$this->cache_prefix = 'mm';
-		//With $cache_prefix, you can prefix the name of the caches. By default any cache made by MY_Model starts with 'mm' + _ + "name chosen for cache"
+		//With $cache_prefix, you can prefix the name of the caches. By default any cache made by SuperModel starts with 'mm' + _ + "name chosen for cache"
 
 		parent::__construct();
  	}
@@ -124,14 +126,14 @@ $this->user_model->insert($insert_data);
 
 You can at any time directly insert values from forms into the tables using the **from_form()** method. First of all **make sure you have a fillable or a protected property (at least the primary key should be in there)**, because you must make sure no-one interferes with your id's or whatever you use to uniquely identify the rows. Also is worth noting that, because the inserts and updates from forms are done directly without intervention from developer, **YOU MUST DEFINE VALIDATION RULES FOR ALL FIELDS THAT YOU ARE FILLING**
 
-After you've done this, you must set the rules. If you use the MY_Model's form validation, I advise you to write the rules inside your model. Below you can find an example of model:
+After you've done this, you must set the rules. If you use the SuperModel's form validation, I advise you to write the rules inside your model. Below you can find an example of model:
 
 ```php
 <?php
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
     //public $soft_deletes = TRUE;
     public $has_one = array('phone' => 'Phone_model', 'address' => array('Address_model','user_id','id'));
@@ -233,7 +235,7 @@ $id = $this->user_model->from_form(NULL,array('created_by'=>'1'))->insert();
 
 ###Arrays vs Objects
 
-By default, MY_Model is setup to return objects. If you'd like to return results as array you can:
+By default, SuperModel is setup to return objects. If you'd like to return results as array you can:
 
 * either define `$this->return_as = 'array'` in the constructor
 * or add `as_array()` into the query chain:
@@ -252,7 +254,7 @@ echo form_dropdown($categories);
 
 ###Caching
 
-If you want to cache the result for faster output, you can at any time use the MY_Model's caching. To do this you simply attach a set_cache('name') inside the query chain:
+If you want to cache the result for faster output, you can at any time use the SuperModel's caching. To do this you simply attach a set_cache('name') inside the query chain:
 
 ```php
 $this->load->model('user_model');
@@ -270,8 +272,8 @@ Whenever you want, you can delete the cache "manually" by using the delete_cache
 There are three ways you can delete the cache:
 
 * `delete_cache('get_all_users')` deletes a certain cache;
-* `delete_cache('*')` deletes the caches that start with 'mm_users_' (where 'mm_users' is the prefix used by MY_Model in conjuction with your model's table name);
-* `delete_cache()` deletes all cache that start with 'mm_' (where 'mm_' is the prefix used by MY_Model).
+* `delete_cache('*')` deletes the caches that start with 'mm_users_' (where 'mm_users' is the prefix used by SuperModel in conjuction with your model's table name);
+* `delete_cache()` deletes all cache that start with 'mm_' (where 'mm_' is the prefix used by SuperModel).
 
 Example:
 ```php
@@ -283,7 +285,7 @@ $this->user_model->delete_cache('get_all_users');
 You can set the model in a way so that the cache will be deleted automatically whenever you write/update/delete data from your model's table. This way you won't need to do it manually. You can have this enabled by setting the delete_cache_on_save property to TRUE in the constructor:
 
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
     //public $soft_deletes = TRUE;
     public $delete_cache_on_save = TRUE;
@@ -314,7 +316,7 @@ echo $this->post_model->all_pages; // will output links to all pages like this m
 echo $this->post_model->previous_page; // will output link to the previous page like this model: "<". It will only put a link if there is a "previous page"
 echo $this->post_model->next_page; // will output link to the next page like this model: ">". It will only put a link if there is a "next page"
 ```
-Don't you like how the links look? You can change them by modifing the following properties inside the models that extend the MY_Model():
+Don't you like how the links look? You can change them by modifing the following properties inside the models that extend the SuperModel():
 
 ```php
 $this->pagination_delimiters = array('<span>','</span>');
@@ -430,7 +432,7 @@ The after_soft_delete and after_delete are also returning the ID's of the rows t
 
 ###Creating relationships
 
-When you extend MY_Model, you can also setup relationships between the model and other models. There are multiple ways of creating relations between tables:
+When you extend SuperModel, you can also setup relationships between the model and other models. There are multiple ways of creating relations between tables:
 
 ####The right way
 
@@ -462,7 +464,7 @@ Has One relationship tells our model that ever record in the table has assigned 
 
 We can define a "one to one" relationship by using the has_one property inside the constructor:
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 
 	function __construct()
@@ -475,7 +477,7 @@ class User_model extends MY_Model
 The reverse of the relationship is defined taking care of the foreign key and local key:
 
 ```php
-class Phone_model extends MY_Model
+class Phone_model extends SuperModel
 {
 
 	function __construct()
@@ -490,7 +492,7 @@ class Phone_model extends MY_Model
 Has Many relationship tells our model that a record in the table can have many related records in another table. The reverse of this relationship is a has one relation, which translates into a One To Many type of relationship. For a reverse relationship of type Many To Many, we will have another property named Has Many Pivot.
 
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 
 	function __construct()
@@ -503,7 +505,7 @@ class User_model extends MY_Model
 The reverse of the relationship (which in this case is a one to one) is defined the same:
 
 ```php
-class Post_model extends MY_Model
+class Post_model extends SuperModel
 {
 
 	function __construct()
@@ -519,10 +521,10 @@ Many to many relationship can have one to one as reverse relationship. But there
 
 ####Setting up a Has Many Pivot relationship THE RIGHT WAY
 
-For the MY_Model to work properly every single time, you must provide it every single detail:
+For the SuperModel to work properly every single time, you must provide it every single detail:
 
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 
 	function __construct()
@@ -552,7 +554,7 @@ For example: considering that a post can have multiple authors, a pivot table th
 Usage example:
 
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 
 	function __construct()
@@ -566,7 +568,7 @@ class User_model extends MY_Model
 The reverse of the relationship (which in this case is also a many to many) is defined the same:
 
 ```php
-class Post_model extends MY_Model
+class Post_model extends SuperModel
 {
 
 	function __construct()
@@ -584,7 +586,7 @@ You get data only related key ids on many to many relationships. If you set as T
 For this you only have to add another key named 'get_relate' and set it to true:
 
 ```php
-class Posts_Model extends MY_Model 
+class Posts_Model extends SuperModel 
 {
     public $table = 'posts';
     public has_many_pivot['posts'] = array(
@@ -606,7 +608,7 @@ class Posts_Model extends MY_Model
 
 Every table has a way to interact with other tables. So if your model has relationships with other models, you can define those relationships:
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 
     function __construct()
@@ -684,7 +686,7 @@ In order to retrieve data from nested relationships, we should pass the with_*()
 So... the Country_model.php: would look like this:
 
 ```php
-class Country_model extends MY_Model
+class Country_model extends SuperModel
 {
     function __construct()
     {
@@ -696,7 +698,7 @@ class Country_model extends MY_Model
 The City_model.php would look like this:
 
 ```php
-class City_model extends MY_Model
+class City_model extends SuperModel
 {
     function __construct()
     {
@@ -709,7 +711,7 @@ class City_model extends MY_Model
 The Company_model.php would look like this:
 
 ```php
-class Company_model extends MY_Model
+class Company_model extends SuperModel
 {
     function __construct()
     {
@@ -738,7 +740,7 @@ After this, I would advise you to do a `$this->user_model->reset_connection();` 
 
 ##Observers##
 
-There are times when you'll need to alter your model data before or after it's inserted or returned. This could be adding timestamps, pulling in relationships or deleting dependent rows. The MVC pattern states that these sorts of operations need to go in the model. In order to facilitate this, MY_Model contains a series of callbacks/observers -- methods that will be called at certain points.
+There are times when you'll need to alter your model data before or after it's inserted or returned. This could be adding timestamps, pulling in relationships or deleting dependent rows. The MVC pattern states that these sorts of operations need to go in the model. In order to facilitate this, SuperModel contains a series of callbacks/observers -- methods that will be called at certain points.
 
 The full list of observers are as follows:
 ```php
@@ -755,7 +757,7 @@ $after_soft_delete = array();
 ```
 These are instance variables usually defined at the class level. They are arrays of methods on this class to be called at certain points. An example:
 ```php
-class User_model extends MY_Model
+class User_model extends SuperModel
 {
 	function __construct()
 	{
@@ -770,7 +772,7 @@ class User_model extends MY_Model
     	}
 }
 ```
-Each observer overwrites its predecessor's data, sequentially, in the order the observers are defined. In order to work with relationships, the MY_Model already has an `after_get` trigger which will be called last.
+Each observer overwrites its predecessor's data, sequentially, in the order the observers are defined. In order to work with relationships, the SuperModel already has an `after_get` trigger which will be called last.
 
 ##Available methods
 
@@ -969,4 +971,4 @@ Sets a connection group for the current chain query
 ###reset_connection()
 Resets the connection to the database to the one that is set for the model or the default connection
 
-Enjoy using my MY_Model and please report any issues or try some pull requests. Thank you
+Enjoy using my SuperModel and please report any issues or try some pull requests. Thank you
