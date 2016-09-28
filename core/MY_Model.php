@@ -5,22 +5,11 @@
 * and changing it is allowed as long as the name is changed.
 * DON'T BE A DICK PUBLIC LICENSE TERMS AND CONDITIONS FOR COPYING, DISTRIBUTION AND MODIFICATION
 * 
-* Modified by XMadMax Jun/2016
-*
 * http://avenir.ro/revisiting-my_model-copying-jamie-rumbelow-looking-eloquent/
 * https://github.com/avenirer/CodeIgniter-MY_Model
 * 
-***** Do whatever you like with the original work, just don't be a dick.
-***** Being a dick includes - but is not limited to - the following instances:
-********* 1a. Outright copyright infringement - Don't just copy this and change the name.
-********* 1b. Selling the unmodified original with no work done what-so-ever, that's REALLY being a dick.
-********* 1c. Modifying the original work to contain hidden harmful content. That would make you a PROPER dick.
-***** If you become rich through modifications, related works/services, or supporting the original work, share the love. Only a dick would make loads off this work and not buy the original works creator(s) a pint.
-***** Code is provided with no warranty.
-*********** Using somebody else's code and bitching when it goes wrong makes you a DONKEY dick.
-*********** Fix the problem yourself. A non-dick would submit the fix back.
- *
- */
+*
+*/
 
 /** how to extend MY_Model:
  *	class User_model extends MY_Model
@@ -73,7 +62,7 @@
  *
  **/
 
-class MY_Model extends CI_Model
+class SuperModel extends CI_Model
 {
 
     /**
@@ -169,7 +158,7 @@ class MY_Model extends CI_Model
     public $pagination_arrows;
 
     /* validation */
-    private $validated = TRUE;
+    public $validated = TRUE;
     private $row_fields_to_update = array();
 
 
@@ -218,13 +207,12 @@ class MY_Model extends CI_Model
     }
 
     /**
-     * _setFieldClass
-     * 
+     * setFieldClass
+     *
      * Creates a class with all fields as objects
-     * 
+     *
      * @return object
      */
-
     public function _setFieldsClass()
     {
         if (!isset($this->table))
@@ -459,9 +447,13 @@ class MY_Model extends CI_Model
             {
                 $data['idx'] = $this->genIDX();
             }
-            if($this->timestamps !== FALSE)
+            if($this->timestamps !== FALSE && $this->_created_at_field != '')
             {
                 $data[$this->_created_at_field] = $this->_the_timestamp();
+            }
+            if($this->timestamps !== FALSE && $this->_updated_at_field != '')
+            {
+                $data[$this->_updated_at_field] = $this->_the_timestamp();
             }
             $data = $this->trigger('before_create',$data);
             if($this->_database->insert($this->table, $data))
@@ -479,7 +471,7 @@ class MY_Model extends CI_Model
             $return = array();
             foreach($data as $row)
             {
-                if($this->timestamps !== FALSE)
+                if($this->timestamps !== FALSE && $this->_created_at_field != '')
                 {
                     $row[$this->_created_at_field] = $this->_the_timestamp();
                 }
@@ -551,7 +543,7 @@ class MY_Model extends CI_Model
         // if the array is not a multidimensional one...
         if($multi === FALSE)
         {
-            if($this->timestamps !== FALSE)
+            if($this->timestamps !== FALSE && $this->_updated_at_field != '')
             {
                 $data[$this->_updated_at_field] = $this->_the_timestamp();
             }
@@ -601,7 +593,7 @@ class MY_Model extends CI_Model
             $rows = 0;
             foreach($data as $row)
             {
-                if($this->timestamps !== FALSE)
+                if($this->timestamps !== FALSE && $this->_updated_at_field != '')
                 {
                     $row[$this->_updated_at_field] = $this->_the_timestamp();
                 }
@@ -709,13 +701,13 @@ class MY_Model extends CI_Model
         }
         elseif(!isset($value) && isset($field_or_array) && isset($operator_or_value) && !is_array($operator_or_value))
         {
-            $this->_database->{$where_or}(array($this->table.'.'.$field_or_array => $operator_or_value));
+            $fieldname = strstr($field_or_array,'.')?$field_or_array:$this->table.'.'.$field_or_array;
+            $this->_database->{$where_or}(array($fieldname => $operator_or_value));
         }
         elseif(!isset($value) && isset($field_or_array) && isset($operator_or_value) && is_array($operator_or_value) && !is_array($field_or_array))
         {
-            //echo $field_or_array;
-            //exit;
-            $this->_database->{$where_or.$not.'_in'}($this->table.'.'.$field_or_array, $operator_or_value);
+            $fieldname = strstr($field_or_array,'.')?$field_or_array:$this->table.'.'.$field_or_array;
+            $this->_database->{$where_or.$not.'_in'}($fieldname, $operator_or_value);
         }
         elseif(isset($field_or_array) && isset($operator_or_value) && isset($value))
         {
@@ -803,6 +795,7 @@ class MY_Model extends CI_Model
                 }
             }
         }
+        
         if(isset($where))
         {
             $this->where($where);
@@ -826,7 +819,12 @@ class MY_Model extends CI_Model
             return $affected_rows;
         }
         else
-        {
+        { 
+            if(!empty($this->before_delete)) {
+                $IDS = array_map( function($to_update) { return(isset($to_update[$this->primary_key])?$to_update[$this->primary_key]:null);},$to_update);
+                $this->_database->where_in($this->primary_key,$IDS);
+            }
+
             if($this->_database->delete($this->table))
             {
                 $affected_rows = $this->_database->affected_rows();
@@ -1006,7 +1004,7 @@ class MY_Model extends CI_Model
             }
             else
             {
-                return FALSE;
+                return array();
             }
         }
     }
@@ -1386,7 +1384,6 @@ class MY_Model extends CI_Model
                             $this->load->model($foreign_model);
 //                            $foreign_model_name = strtolower($foreign_model);
                             $foreign_model_name = (substr($foreign_model,strpos($foreign_model,'/')>0?strpos($foreign_model,'/')+1:0));
-
                             $foreign_table = $this->{$foreign_model_name}->table;
                             $foreign_key = $this->{$foreign_model_name}->primary_key;
                             $local_key = $this->primary_key;
@@ -1577,6 +1574,21 @@ class MY_Model extends CI_Model
                 $this->_select = '';
                 $this->_database->select('COUNT(1) AS counted_rows',FALSE);
             }
+            else if($fields == '*max*')
+            {
+                $this->_select = '';
+                $this->_database->select('MAX('.$distinct.') AS result',FALSE);
+            }
+            else if($fields == '*min*')
+            {
+                $this->_select = '';
+                $this->_database->select('MIN('.$distinct.') AS result',FALSE);
+            }
+            else if($fields == '*sum*')
+            {
+                $this->_select = '';
+                $this->_database->select('SUM('.$distinct.') AS result',FALSE);
+            }
             else
             {
                 $this->_select = array();
@@ -1738,9 +1750,9 @@ class MY_Model extends CI_Model
     {
         if($this->timestamps !== FALSE)
         {
-            $this->_created_at_field = (is_array($this->timestamps) && isset($this->timestamps[0])) ? $this->timestamps[0] : 'created_at';
-            $this->_updated_at_field = (is_array($this->timestamps) && isset($this->timestamps[1])) ? $this->timestamps[1] : 'updated_at';
-            $this->_deleted_at_field = (is_array($this->timestamps) && isset($this->timestamps[2])) ? $this->timestamps[2] : 'deleted_at';
+            $this->_created_at_field = (is_array($this->timestamps) && isset($this->timestamps[0])) ? $this->timestamps[0] : '';
+            $this->_updated_at_field = (is_array($this->timestamps) && isset($this->timestamps[1])) ? $this->timestamps[1] : '';
+            $this->_deleted_at_field = (is_array($this->timestamps) && isset($this->timestamps[2])) ? $this->timestamps[2] : '';
         }
         return TRUE;
     }
@@ -2009,4 +2021,11 @@ class MY_Model extends CI_Model
     }
     */
 
+    protected function genIDX()
+    {
+        $str   = uniqid("$", true);
+        $rand = substr(md5(microtime()), 0, 1);
+        $str   = preg_replace('/\./', $rand, $str);
+        return $str;
+    }
 }
