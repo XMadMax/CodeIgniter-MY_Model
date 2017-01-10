@@ -327,9 +327,12 @@ class SuperModel extends CI_Model
             $pk = $this->primary_key;
             if (stristr($pk,' as '))
                 $pk = substr($pk,stripos($pk,' as ')+4);
+            $dropdown_field = $this->_dropdown_field;
+            if (stristr($dropdown_field,' as '))
+                $dropdown_field = substr($dropdown_field,stripos($dropdown_field,' as ')+4);
             foreach($data as $row)
             {
-                $dropdown[$row[$pk]] = $row[$this->_dropdown_field];
+                $dropdown[$row[$pk]] = $row[$dropdown_field];
             }
             $data = $dropdown;
             $this->return_as_dropdown = NULL;
@@ -424,8 +427,11 @@ class SuperModel extends CI_Model
      * @param $data
      * @return int/array Returns id/ids of inserted rows
      */
-    public function insert($data = NULL)
+    public function insert($data = NULL, $mode = 'insert')
     {
+        if ($mode != 'insert' && $mode != 'replace') {
+            return FALSE;
+        }
         if(!isset($data) && $this->validated!=FALSE)
         {
             $data = $this->validated;
@@ -456,7 +462,7 @@ class SuperModel extends CI_Model
                 $data[$this->_updated_at_field] = $this->_the_timestamp();
             }
             $data = $this->trigger('before_create',$data);
-            if($this->_database->insert($this->table, $data))
+            if($this->_database->{$mode}($this->table, $data))
             {
                 $this->_prep_after_write();
                 $id = $this->_database->insert_id();
@@ -476,7 +482,7 @@ class SuperModel extends CI_Model
                     $row[$this->_created_at_field] = $this->_the_timestamp();
                 }
                 $row = $this->trigger('before_create',$row);
-                if($this->_database->insert($this->table,$row))
+                if($this->_database->{$mode}($this->table,$row))
                 {
                     $return[] = $this->_database->insert_id();
                 }
@@ -582,9 +588,11 @@ class SuperModel extends CI_Model
                     $this->_prep_after_write();
                     $affected = $this->_database->affected_rows();
                     $return = $this->trigger('after_update',$affected);
+                    $this->_database->flush_cache();
                     return $return;
                 }
             }
+            $this->_database->flush_cache();
             return FALSE;
         }
         // else...
@@ -625,8 +633,10 @@ class SuperModel extends CI_Model
             $affected = $rows;
             $this->_prep_after_write();
             $return = $this->trigger('after_update',$affected);
+            $this->_database->flush_cache();
             return $return;
         }
+        $this->_database->flush_cache();
         return FALSE;
     }
 
@@ -725,7 +735,7 @@ class SuperModel extends CI_Model
                     $like = 'or_'.$like;
                 }
 
-                $this->_database->{$like}($field_or_array, $value);
+                $this->_database->{$like}($field_or_array, $value, '', false);
             }
             else
             {
@@ -1101,6 +1111,7 @@ class SuperModel extends CI_Model
         $order_by = array();
         $order_inside_array = array();
         //$order_inside = '';
+        $this->_database->reset_query();
         foreach($this->_requested as $requested_key => $request)
         {
             $pivot_table = NULL;
@@ -1592,7 +1603,7 @@ class SuperModel extends CI_Model
             else
             {
                 $this->_select = array();
-                $fields = (!is_array($fields)) ? explode(',', $fields) : $fields;
+                $fields = (!is_array($fields)) ? explode(', ', $fields) : $fields;
                 if (!empty($fields))
                 {
                     foreach ($fields as &$field)
@@ -1628,12 +1639,21 @@ class SuperModel extends CI_Model
         {
             foreach ($criteria as $key=>$value)
             {
-                $this->_database->order_by($key, $value);
+                if (substr($value,0,1)=='(') {
+                    $this->_database->order_by($key, $value, false);
+                }
+                else {
+                    $this->_database->order_by($key, $value);
+                }
             }
         }
         else
         {
-            $this->_database->order_by($criteria, $order);
+            if (substr($criteria,0,1)=='(') {
+                $this->_database->order_by($criteria, $order, false);
+            }
+            else {
+                $this->_database->order_by($criteria, $order);
         }
         return $this;
     }
