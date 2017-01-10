@@ -12,25 +12,39 @@ SuperModel doesn't replace ActiverRecord, you can use it together.
 ```php
 class User_model extends SuperModel { }
 
+// Load Model
 $this->load->model('user_model');
 
+// Get record where Primary_key = 1
 $this->user_model->get(1)
 
+// Get all records
 $this->user_model->get_all();
 
+// Select only this fields:
+$this->user_model->fields('email as email1, status as status1');
+
+// Get first 50 records 
+$this->user_model->limit(50)->get_all();
+
+// Get first record where Username = 'averiner'
 $this->user_model->where('username','avenirer')->get();
 
+// Insert a new record
 $this->user_model->insert(array('username' => 'avenirer','email' => 'avenir.ro@gmail.com'));
 
+// Update record, set status = 0 where primary_key = 1
 $this->user_model->update(array('status' => '0'), 1);
 
+// Delee record where primary_key = 1
 $this->user_model->delete(1);
 
-$this->user_model->fields('*count*')->where(array('status' => '0'), 1)->get_all();
+// Select count of all records where status = 0
+$this->user_model->fields('*count*')->where(array('status' => '0'))->get();
 
-$this->user_model->fields('*count-distinct*','email')->where(array('status' => '0'), 1)->get_all();
+// Select count of all distinct emails where status = 0
+$this->user_model->fields('*count-distinct*','email')->where(array('status' => '0'))->get();
 
-$this->user_model->fields('email as email1,status as status1');
 ```
 
 ##Installation/Usage
