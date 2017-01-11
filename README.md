@@ -10,7 +10,15 @@ SuperModel doesn't replace ActiverRecord, you can use it together.
 
 ##Synopsis
 ```php
-class User_model extends SuperModel { }
+
+class User_model extends MY_Model { 
+    public $table       = 'users';
+    public $primary_key = 'id';
+}
+
+
+
+// INSIDE ANY CONTROLLER OR MODEL :
 
 // Load Model
 $this->load->model('user_model');
@@ -49,11 +57,11 @@ $this->user_model->fields('*count-distinct*','email')->where(array('status' => '
 
 ##Installation/Usage
 
-Download and drag the **SuperModel.php** file into your **application/core** directory. CodeIgniter will load and initialise this class automatically.
+Download and drag the **MY_Model.php** file into your **application/core** directory. CodeIgniter will load and initialise this class automatically.
 
 Extend your model classes from SuperModel and all the functionality will be baked in automatically.
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 	public $table = 'users'; // you MUST mention the table name
 	public $primary_key = 'id'; // you MUST mention the primary key
@@ -72,7 +80,7 @@ If extended like that, SuperModel makes the following assumptions:
 wh
 If you want, you can be original by changing the settings before the `parent::__construct();`
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 	public function __construct()
 	{
@@ -147,7 +155,7 @@ After you've done this, you must set the rules. If you use the SuperModel's form
 
 defined('BASEPATH') OR exit('No direct script access allowed');
 
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
     //public $soft_deletes = TRUE;
     public $has_one = array('phone' => 'Phone_model', 'address' => array('Address_model','user_id','id'));
@@ -299,7 +307,7 @@ $this->user_model->delete_cache('get_all_users');
 You can set the model in a way so that the cache will be deleted automatically whenever you write/update/delete data from your model's table. This way you won't need to do it manually. You can have this enabled by setting the delete_cache_on_save property to TRUE in the constructor:
 
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
     //public $soft_deletes = TRUE;
     public $delete_cache_on_save = TRUE;
@@ -491,7 +499,7 @@ class User_model extends SuperModel
 The reverse of the relationship is defined taking care of the foreign key and local key:
 
 ```php
-class Phone_model extends SuperModel
+class Phone_model extends MY_Model
 {
 
 	function __construct()
@@ -506,7 +514,7 @@ class Phone_model extends SuperModel
 Has Many relationship tells our model that a record in the table can have many related records in another table. The reverse of this relationship is a has one relation, which translates into a One To Many type of relationship. For a reverse relationship of type Many To Many, we will have another property named Has Many Pivot.
 
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 
 	function __construct()
@@ -519,7 +527,7 @@ class User_model extends SuperModel
 The reverse of the relationship (which in this case is a one to one) is defined the same:
 
 ```php
-class Post_model extends SuperModel
+class Post_model extends MY_Model
 {
 
 	function __construct()
@@ -538,7 +546,7 @@ Many to many relationship can have one to one as reverse relationship. But there
 For the SuperModel to work properly every single time, you must provide it every single detail:
 
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 
 	function __construct()
@@ -568,7 +576,7 @@ For example: considering that a post can have multiple authors, a pivot table th
 Usage example:
 
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 
 	function __construct()
@@ -582,7 +590,7 @@ class User_model extends SuperModel
 The reverse of the relationship (which in this case is also a many to many) is defined the same:
 
 ```php
-class Post_model extends SuperModel
+class Post_model extends MY_Model
 {
 
 	function __construct()
@@ -600,7 +608,7 @@ You get data only related key ids on many to many relationships. If you set as T
 For this you only have to add another key named 'get_relate' and set it to true:
 
 ```php
-class Posts_Model extends SuperModel 
+class Posts_Model extends MY_Model 
 {
     public $table = 'posts';
     public has_many_pivot['posts'] = array(
@@ -622,7 +630,7 @@ class Posts_Model extends SuperModel
 
 Every table has a way to interact with other tables. So if your model has relationships with other models, you can define those relationships:
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 
     function __construct()
@@ -700,7 +708,7 @@ In order to retrieve data from nested relationships, we should pass the with_*()
 So... the Country_model.php: would look like this:
 
 ```php
-class Country_model extends SuperModel
+class Country_model extends MY_Model
 {
     function __construct()
     {
@@ -712,7 +720,7 @@ class Country_model extends SuperModel
 The City_model.php would look like this:
 
 ```php
-class City_model extends SuperModel
+class City_model extends MY_Model
 {
     function __construct()
     {
@@ -725,7 +733,7 @@ class City_model extends SuperModel
 The Company_model.php would look like this:
 
 ```php
-class Company_model extends SuperModel
+class Company_model extends MY_Model
 {
     function __construct()
     {
@@ -771,7 +779,7 @@ $after_soft_delete = array();
 ```
 These are instance variables usually defined at the class level. They are arrays of methods on this class to be called at certain points. An example:
 ```php
-class User_model extends SuperModel
+class User_model extends MY_Model
 {
 	function __construct()
 	{
