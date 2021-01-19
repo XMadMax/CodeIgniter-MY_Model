@@ -55,7 +55,7 @@ $this->user_model->fields('*count-distinct*','email')->where(array('status' => '
 
 ```
 
-##Installation/Usage
+##Installation/Usage##
 
 Download and drag the **MY_Model.php** file into your **application/core** directory. CodeIgniter will load and initialise this class automatically.
 
@@ -130,9 +130,9 @@ class User_model extends MY_Model
 }
 ```
 
-##CREATE
+##CREATE##
 
-###Inserting values
+###Inserting values###
 
 You can insert values by using the **insert()** method, passing it an array or an object as parameter. You can also insert multiple rows of data by using a multidimensional array.
 
@@ -144,7 +144,7 @@ $this->user_model->insert($insert_data);
 ?>
 ```
 
-###Inserting directly from forms with form validation
+###Inserting directly from forms with form validation###
 
 You can at any time directly insert values from forms into the tables using the **from_form()** method. First of all **make sure you have a fillable or a protected property (at least the primary key should be in there)**, because you must make sure no-one interferes with your id's or whatever you use to uniquely identify the rows. Also is worth noting that, because the inserts and updates from forms are done directly without intervention from developer, **YOU MUST DEFINE VALIDATION RULES FOR ALL FIELDS THAT YOU ARE FILLING**
 
@@ -253,9 +253,9 @@ $id = $this->user_model->from_form(NULL,array('created_by'=>'1'))->insert();
 ...
 ```
 
-##READ
+##READ##
 
-###Arrays vs Objects
+###Arrays vs Objects###
 
 By default, SuperModel is setup to return objects. If you'd like to return results as array you can:
 
