@@ -130,9 +130,9 @@ class User_model extends MY_Model
 }
 ```
 
-## CEATE
+## CREATE
 
-### nserting values
+### Inserting values
 
 You can insert values by using the **insert()** method, passing it an array or an object as parameter. You can also insert multiple rows of data by using a multidimensional array.
 
