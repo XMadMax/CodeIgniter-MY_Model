@@ -8,7 +8,7 @@ HMVC and XHMVC compliant.
 
 SuperModel doesn't replace ActiverRecord, you can use it together.
 
-##Synopsis
+##Synopsis##
 ```php
 
 class User_model extends MY_Model { 
